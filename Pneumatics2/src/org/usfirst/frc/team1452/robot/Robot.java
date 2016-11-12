@@ -19,7 +19,7 @@ public class Robot extends IterativeRobot {
     String autoSelected;
     SendableChooser chooser;
     Compressor c = new Compressor(0);
-    DoubleSolenoid d = new DoubleSolenoid(1,2);
+    DoubleSolenoid d = new DoubleSolenoid(1,0);
     Joystick j = new Joystick(0);
 	
     /**
@@ -68,11 +68,14 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-        if(j.getRawButton(0) == true){
+        if(j.getRawButton(1) == true){
         	d.set(DoubleSolenoid.Value.kForward);
         }
-        else if(j.getRawButton(1) == true){
+        else if(j.getRawButton(2) == true){
         	d.set(DoubleSolenoid.Value.kReverse);
+        }
+        else{
+        	d.set(DoubleSolenoid.Value.kOff);
         }
     }
     
