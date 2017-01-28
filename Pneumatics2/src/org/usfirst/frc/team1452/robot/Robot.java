@@ -20,7 +20,12 @@ public class Robot extends IterativeRobot {
     SendableChooser chooser;
     Compressor c = new Compressor(0);
     DoubleSolenoid d = new DoubleSolenoid(1,0);
+    Solenoid s = new Solenoid(2);
     Joystick j = new Joystick(0);
+    DigitalInput touchSensor = new DigitalInput(0);
+    Timer t = new Timer();
+    int state;
+    
 	
     /**
      * This function is run when the robot is first started up and should be
@@ -32,6 +37,7 @@ public class Robot extends IterativeRobot {
         chooser.addObject("My Auto", customAuto);
         SmartDashboard.putData("Auto choices", chooser);
         c.setClosedLoopControl(true);
+        state = -1;
     }
     
 	/**
@@ -68,20 +74,50 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-        if(j.getRawButton(1) == true){
-        	d.set(DoubleSolenoid.Value.kForward);
+        if(state == -1){
+        	SmartDashboard.putNumber("state ", state);
+        	d.set(DoubleSolenoid.Value.kForward);//forward is open
+        	s.set(false);//false is down
+        	state++;
         }
-        else if(j.getRawButton(2) == true){
-        	d.set(DoubleSolenoid.Value.kReverse);
+        if(state == 0){//touch sensor is unpressed and claw is down and open
+        	if(touchSensor.get()){
+        		SmartDashboard.putNumber("state ", state);
+        		System.out.println("YAYYYYYYYYYY");
+        		d.set(DoubleSolenoid.Value.kReverse);
+        		t.reset();
+        		t.start();
+        		state++;
+        	}
         }
-        else{
-        	d.set(DoubleSolenoid.Value.kOff);
+        if(state == 1){//touch sensor has been triggered, and claw is closed but down
+        	if(t.get() >= 2){
+        		SmartDashboard.putNumber("state ", state);
+        		s.set(true);
+        		state++;
+        	}
         }
-    }
+        if(state == 2){//claw is up and closed
+        	if(j.getRawButton(1)){
+        		SmartDashboard.putNumber("state ", state);
+        		d.set(DoubleSolenoid.Value.kForward);
+        		t.reset();
+        		t.start();
+        		state++;
+        	}
+        }
+        if(state==3){//claw is up and open
+        	if(t.get() >= 1){
+        		SmartDashboard.putNumber("state ", state);
+        		s.set(false);
+        		state = 0;
+        	}
+        }
     
     /**
      * This function is called periodically during test mode
      */
+    }
     public void testPeriodic() {
     
     }
